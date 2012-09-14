@@ -2,6 +2,7 @@ import os
 import unittest
 
 from readability import Document
+import lxml.html
 
 
 SAMPLES = os.path.join(os.path.dirname(__file__), 'samples')
@@ -37,3 +38,17 @@ class TestArticleOnly(unittest.TestCase):
         res = doc.summary(html_partial=True)
         self.assertEqual('<div><div class="', res[0:17])
 
+    def test_nyt_sample_html_iframe(self):
+        """Using the nyt sample, make sure the summary holds an <iframe> element (youtube video)"""
+        sample = load_sample('nyt-article-video.sample.html')
+        doc = Document(sample, url='http://nytimes.com/')
+        res = doc.summary()
+        self.assertTrue('<iframe ' in res)
+
+    def test_lxml_obj_result(self):
+        """Feed Document with an lxml obj instead of an html string. Expect an lxml response"""
+        utf8_parser = lxml.html.HTMLParser(encoding='utf-8')
+        sample = lxml.html.document_fromstring(load_sample('nyt-article-video.sample.html'), parser=utf8_parser)
+        doc = Document(sample, url='http://nytimes.com/')
+        res = doc.summary()
+        self.assertFalse(isinstance(res, basestring))

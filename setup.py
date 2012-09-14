@@ -3,14 +3,14 @@ from setuptools import setup, find_packages
 
 setup(
     name="readability-lxml",
-    version="0.2.6.1",
-    author="Yuri Baburov",
-    author_email="burchik@gmail.com",
-    description="fast python port of arc90's readability tool",
+    version="0.2.6.2",
+    author="Roberto Alamos",
+    author_email="roberto@rebelmouse.com",
+    description="modified port of buriy's readability tool",
     test_suite = "tests.test_article_only",
     long_description=open("README").read(),
     license="Apache License 2.0",
-    url="http://github.com/buriy/python-readability",
+    url="http://github.com/ralamosm/python-readability",
     packages=['readability'],
     install_requires=[
         "chardet",

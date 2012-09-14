@@ -1,9 +1,5 @@
 This code is under the Apache License 2.0.  http://www.apache.org/licenses/LICENSE-2.0
 
-This is a python port of a ruby port of arc90's readability project
-
-http://lab.arc90.com/experiments/readability/
-
 In few words,
 Given a html document, it pulls out the main body text and cleans it up.
 It also can clean up title based on latest readability.js code.
@@ -49,3 +45,4 @@ Updates
  - 0.2.5 Update setup.py for uploading .tar.gz to pypi
  - 0.2.6 Don't crash on documents with no title
  - 0.2.6.1 Document.short_title() properly works
+ - 0.2.6.2 Document will send as output what it receives as input: an lxml obj or string

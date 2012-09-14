@@ -10,12 +10,15 @@ logging.getLogger().setLevel(logging.DEBUG)
 utf8_parser = lxml.html.HTMLParser(encoding='utf-8')
 
 def build_doc(page):
-    if isinstance(page, unicode):
-        page_unicode = page
+    if isinstance(page, basestring):
+        if isinstance(page, unicode):
+            page_unicode = page
+        else:
+            enc = get_encoding(page)
+            page_unicode = page.decode(enc, 'replace')
+        doc = lxml.html.document_fromstring(page_unicode.encode('utf-8', 'replace'), parser=utf8_parser)
     else:
-        enc = get_encoding(page)
-        page_unicode = page.decode(enc, 'replace')
-    doc = lxml.html.document_fromstring(page_unicode.encode('utf-8', 'replace'), parser=utf8_parser)
+        doc = page
     return doc
 
 def js_re(src, pattern, flags, repl):
@@ -113,3 +116,11 @@ def get_body(doc):
     except Exception: #FIXME find the equivalent lxml error
         logging.error("cleansing broke html content: %s\n---------\n%s" % (raw_html, cleaned))
         return raw_html
+
+def gettext(elem):
+    text = elem.text or ""
+    for e in elem:
+        text += gettext(e)
+        if e.tail:
+            text += e.tail
+    return text

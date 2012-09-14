@@ -8,6 +8,7 @@ from lxml.etree import tostring
 from lxml.etree import tounicode
 from lxml.html import document_fromstring
 from lxml.html import fragment_fromstring
+from lxml.html import _transform_result
 
 from cleaners import clean_attributes
 from cleaners import html_cleaner
@@ -15,6 +16,7 @@ from htmls import build_doc
 from htmls import get_body
 from htmls import get_title
 from htmls import shorten_title
+from htmls import gettext
 
 
 logging.basicConfig(level=logging.INFO)
@@ -98,6 +100,7 @@ class Document:
         self.input = input
         self.options = options
         self.html = None
+        self._result_type = type(self.input)
 
     def _html(self, force=False):
         if force or self.html is None:
@@ -165,11 +168,7 @@ class Document:
                         if article is None:
                             article = self.html
                 cleaned_article = self.sanitize(article, candidates)
-                article_length = len(cleaned_article or '')
-                retry_length = self.options.get(
-                    'retry_length',
-                    self.RETRY_LENGTH)
-                of_acceptable_length = article_length >= retry_length
+                of_acceptable_length = self._check_length(cleaned_article)
                 if ruthless and not of_acceptable_length:
                     ruthless = False
                     # Loop through and try again.
@@ -179,6 +178,17 @@ class Document:
         except StandardError, e:
             log.exception('error getting summary: ')
             raise Unparseable(str(e)), None, sys.exc_info()[2]
+
+    def _check_length(self, article):
+        # Checks the size of a doc, whether it's an html string or lxml obj
+        if isinstance(article, basestring):
+            article_length = len(article or '')
+        else:
+            article_length = len(gettext(article) or '')
+        retry_length = self.options.get(
+            'retry_length',
+            self.RETRY_LENGTH)
+        return article_length >= retry_length
 
     def get_article(self, candidates, best_candidate, html_partial=False):
         # Now that we have the top candidate, look through its siblings for
@@ -404,7 +414,7 @@ class Document:
             if self.class_weight(header) < 0 or self.get_link_density(header) > 0.33:
                 header.drop_tree()
 
-        for elem in self.tags(node, "form", "iframe", "textarea"):
+        for elem in self.tags(node, "form", "textarea"):
             elem.drop_tree()
         allowed = {}
         # Conditionally clean <table>s, <ul>s, and <div>s
@@ -525,12 +535,12 @@ class Document:
                     #self.debug("pname %s pweight %.3f" %(pname, pweight))
                     el.drop_tree()
 
-        for el in ([node] + [n for n in node.iter()]):
-            if not self.options.get('attributes', None):
-                #el.attrib = {} #FIXME:Checkout the effects of disabling this
-                pass
+        #for el in ([node] + [n for n in node.iter()]):
+        #    if not self.options.get('attributes', None):
+        #        #el.attrib = {} #FIXME:Checkout the effects of disabling this
+        #        pass
 
-        return clean_attributes(tounicode(node))
+        return _transform_result(self._result_type, node)
 
 
 class HashableElement():
